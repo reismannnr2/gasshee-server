@@ -4,7 +4,7 @@ const ESLintPlugin = require('eslint-webpack-plugin');
 const GasPlugin = require('gas-webpack-plugin');
 
 module.exports = {
-  mode: 'development',
+  mode: 'production',
   devtool: false,
   context: __dirname,
   entry: './src/index.ts',
