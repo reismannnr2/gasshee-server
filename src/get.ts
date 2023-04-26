@@ -1,5 +1,5 @@
 import { Response, getFolder, getSingleFile, parseFileToData, response } from './common';
-import { dataSchema } from './schema';
+import { Data, dataSchema } from './schema';
 
 export default function doGetImpl(e: GoogleAppsScript.Events.DoGet) {
   const mode = getMode(e.parameter.mode);
@@ -31,8 +31,8 @@ function showList(e: GoogleAppsScript.Events.DoGet): Response {
     return response({ success: false, message: 'Folder not found' });
   }
   const files = folder.getFiles();
-  const items = [];
-  const tag = e.parameter.tag;
+  const items: Data[] = [];
+  const tags: string[] = [];
   while (files.hasNext()) {
     const file = files.next();
     const json = file.getBlob().getDataAsString();
@@ -41,15 +41,13 @@ function showList(e: GoogleAppsScript.Events.DoGet): Response {
       if (parsed.parole && parsed.parole !== e.parameter.parole) {
         continue;
       }
-      if (tag && !parsed.tags.includes(tag)) {
-        continue;
-      }
       items.push(parsed);
+      tags.push(...parsed.tags);
     } catch (e) {
       continue;
     }
   }
-  return response({ success: true, items });
+  return response({ success: true, items, tags });
 }
 
 function showItem(e: GoogleAppsScript.Events.DoGet): Response {
