@@ -62,22 +62,12 @@ function createItem(e: GoogleAppsScript.Events.DoPost): Response {
 }
 
 function acquireNewId(folder: GoogleAppsScript.Drive.Folder): string {
-  const id = generateId();
+  const id = Utilities.getUuid();
   const file = folder.getFilesByName(`${id}.json`);
   if (file.hasNext()) {
     return acquireNewId(folder);
   }
   return id;
-}
-
-function generateId(): string {
-  const id = Utilities.getUuid();
-  const bytes: number[] = [];
-  const list = id.split('-').join('');
-  for (let i = 0; i < list.length; i += 2) {
-    bytes.push(parseInt(list.substring(i, i + 2), 16));
-  }
-  return Utilities.base64EncodeWebSafe(bytes);
 }
 
 function updateItem(e: GoogleAppsScript.Events.DoPost): Response {
