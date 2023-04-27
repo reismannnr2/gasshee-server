@@ -1,6 +1,6 @@
 import { Response, getFolder, hashPassword, parseFileToData, response } from './common';
 import { checkRecaptcha } from './recaptcha';
-import { Data, dataSchema, deleteDataSchema, newDataSchema } from './schema';
+import { Data, deleteDataSchema, newDataSchema, updateDataSchema } from './schema';
 
 export default function doPostImpl(e: GoogleAppsScript.Events.DoPost): Response {
   if (!checkRecaptcha(e)) {
@@ -62,12 +62,22 @@ function createItem(e: GoogleAppsScript.Events.DoPost): Response {
 }
 
 function acquireNewId(folder: GoogleAppsScript.Drive.Folder): string {
-  const id = Utilities.getUuid();
+  const id = generateId();
   const file = folder.getFilesByName(`${id}.json`);
   if (file.hasNext()) {
     return acquireNewId(folder);
   }
   return id;
+}
+
+function generateId(): string {
+  const id = Utilities.getUuid();
+  const bytes: number[] = [];
+  const list = id.split('-').join('');
+  for (let i = 0; i < list.length; i += 2) {
+    bytes.push(parseInt(list.substring(i, i + 2), 16));
+  }
+  return Utilities.base64EncodeWebSafe(bytes);
 }
 
 function updateItem(e: GoogleAppsScript.Events.DoPost): Response {
@@ -80,7 +90,7 @@ function updateItem(e: GoogleAppsScript.Events.DoPost): Response {
     return response({ success: false, message: 'Data not found' });
   }
   try {
-    const baseData = dataSchema.parse(JSON.parse(rawJson));
+    const baseData = updateDataSchema.parse(JSON.parse(rawJson));
     const id = baseData.id;
     const file = folder.getFilesByName(`${id}.json`);
     if (!file.hasNext()) {

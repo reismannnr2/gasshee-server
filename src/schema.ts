@@ -35,16 +35,20 @@ export const dataSchema = z.union([plainDataSchema, cipherDataSchema]);
 export type Data = z.infer<typeof dataSchema>;
 
 export const newPlainDataSchema = plainDataSchema.omit({ id: true, createdAt: true, updatedAt: true });
-export type NewPlainData = z.infer<typeof newPlainDataSchema>;
 export const newCipherDataSchema = cipherDataSchema.omit({ id: true, createdAt: true, updatedAt: true });
-export type NewCipherData = z.infer<typeof newCipherDataSchema>;
-
 export const newDataSchema = z.union([newPlainDataSchema, newCipherDataSchema]);
 export type NewData = z.infer<typeof newDataSchema>;
+
+export const updatePlainDataSchema = plainDataSchema.omit({ createdAt: true, updatedAt: true });
+export const updateCipherDataSchema = cipherDataSchema.omit({ createdAt: true, updatedAt: true });
+export const updateDataSchema = z.union([updatePlainDataSchema, updateCipherDataSchema]);
+export type UpdateData = z.infer<typeof updateDataSchema>;
+
 export const plainDataWithoutPassword = plainDataSchema.omit({ password: true });
 export const cipherDataWithoutPassword = cipherDataSchema.omit({ password: true });
 export const dataWithoutPassword = z.union([plainDataWithoutPassword, cipherDataWithoutPassword]);
 export type DataWithoutPassword = z.infer<typeof dataWithoutPassword>;
+
 export const plainDataForList = plainDataWithoutPassword.omit({ content: true });
 export const cipherDataForList = cipherDataWithoutPassword.omit({ content: true });
 export const dataForList = z.union([plainDataForList, cipherDataForList]);
