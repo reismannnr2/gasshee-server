@@ -1,5 +1,5 @@
 import { Response, getFolder, getSingleFile, parseFileToData, response } from './common';
-import { Data, dataSchema } from './schema';
+import { DataForList, dataSchema } from './schema';
 
 export default function doGetImpl(e: GoogleAppsScript.Events.DoGet) {
   const mode = getMode(e.parameter.mode);
@@ -31,7 +31,7 @@ function showList(e: GoogleAppsScript.Events.DoGet): Response {
     return response({ success: false, message: 'Folder not found' });
   }
   const files = folder.getFiles();
-  const items: Data[] = [];
+  const items: DataForList[] = [];
   const tags: string[] = [];
   while (files.hasNext()) {
     const file = files.next();
@@ -41,6 +41,10 @@ function showList(e: GoogleAppsScript.Events.DoGet): Response {
       if (parsed.parole && parsed.parole !== e.parameter.parole) {
         continue;
       }
+      const item = { ...parsed };
+      delete item.parole;
+      delete item.password;
+      delete item.content;
       items.push(parsed);
       tags.push(...parsed.tags);
     } catch (e) {
@@ -60,9 +64,12 @@ function showItem(e: GoogleAppsScript.Events.DoGet): Response {
   if (!file) {
     return response({ success: false, message: 'File not found' });
   }
-  const item = parseFileToData(file);
-  if (!item) {
+  const raw = parseFileToData(file);
+  if (!raw) {
     return response({ success: false, message: 'File parse error' });
   }
+  const item = { ...raw };
+  delete item.parole;
+  delete item.password;
   return response({ success: true, item: item });
 }

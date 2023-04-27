@@ -1,7 +1,7 @@
 import { nanoid } from 'nanoid';
 import { Response, getFolder, hashPassword, parseFileToData, response } from './common';
 import { checkRecaptcha } from './recaptcha';
-import { Data, dataSchema, newDataSchema } from './schema';
+import { Data, dataSchema, deleteDataSchema, newDataSchema } from './schema';
 
 export default function doPostImpl(e: GoogleAppsScript.Events.DoPost): Response {
   if (!checkRecaptcha(e)) {
@@ -13,10 +13,12 @@ export default function doPostImpl(e: GoogleAppsScript.Events.DoPost): Response 
       return createItem(e);
     case 'update':
       return updateItem(e);
+    case 'delete':
+      return deleteItem(e);
   }
 }
 
-const MODE_LIST = ['create', 'update'] as const;
+const MODE_LIST = ['create', 'update', 'delete'] as const;
 type Mode = (typeof MODE_LIST)[number];
 
 function isMode(mode: string | undefined): mode is Mode {
@@ -106,6 +108,43 @@ function updateItem(e: GoogleAppsScript.Events.DoPost): Response {
       return response({ success: true, id });
     } catch (e) {
       return response({ success: false, message: 'Failed to update file' });
+    }
+  } catch (e) {
+    return response({ success: false, message: 'Failed to parse data' });
+  }
+}
+
+function deleteItem(e: GoogleAppsScript.Events.DoPost): Response {
+  const folder = getFolder();
+  if (!folder) {
+    return response({ success: false, message: 'Folder not found' });
+  }
+  const rawJson = e.parameter.data;
+  if (!rawJson) {
+    return response({ success: false, message: 'Data not found' });
+  }
+  try {
+    const deleteData = deleteDataSchema.parse(JSON.parse(rawJson));
+    const id = deleteData.id;
+    const file = folder.getFilesByName(`${id}.json`);
+    if (!file.hasNext()) {
+      return response({ success: false, message: 'File not found' });
+    }
+    const oldFile = file.next();
+    const oldData = parseFileToData(oldFile);
+    if (!oldData) {
+      return response({ success: false, message: 'Failed to parse old data' });
+    }
+    const hashedNewPassword = deleteData.password ? hashPassword(deleteData.password) : undefined;
+    const checkPassword = !oldData.password || oldData.password === hashedNewPassword;
+    if (!checkPassword) {
+      return response({ success: false, message: 'Password is incorrect' });
+    }
+    try {
+      folder.removeFile(oldFile);
+      return response({ success: true, id });
+    } catch (e) {
+      return response({ success: false, message: 'Failed to delete file' });
     }
   } catch (e) {
     return response({ success: false, message: 'Failed to parse data' });

@@ -25,6 +25,12 @@ export const cipherDataSchema = baseDataSchema.extend({
 });
 export type CipherData = z.infer<typeof cipherDataSchema>;
 
+export const deleteDataSchema = z.object({
+  id: z.string(),
+  password: z.optional(z.string()),
+});
+export type DeleteData = z.infer<typeof deleteDataSchema>;
+
 export const dataSchema = z.union([plainDataSchema, cipherDataSchema]);
 export type Data = z.infer<typeof dataSchema>;
 
@@ -32,5 +38,14 @@ export const newPlainDataSchema = plainDataSchema.omit({ id: true, createdAt: tr
 export type NewPlainData = z.infer<typeof newPlainDataSchema>;
 export const newCipherDataSchema = cipherDataSchema.omit({ id: true, createdAt: true, updatedAt: true });
 export type NewCipherData = z.infer<typeof newCipherDataSchema>;
+
 export const newDataSchema = z.union([newPlainDataSchema, newCipherDataSchema]);
 export type NewData = z.infer<typeof newDataSchema>;
+export const plainDataWithoutPassword = plainDataSchema.omit({ password: true });
+export const cipherDataWithoutPassword = cipherDataSchema.omit({ password: true });
+export const dataWithoutPassword = z.union([plainDataWithoutPassword, cipherDataWithoutPassword]);
+export type DataWithoutPassword = z.infer<typeof dataWithoutPassword>;
+export const plainDataForList = plainDataWithoutPassword.omit({ content: true });
+export const cipherDataForList = cipherDataWithoutPassword.omit({ content: true });
+export const dataForList = z.union([plainDataForList, cipherDataForList]);
+export type DataForList = z.infer<typeof dataForList>;
