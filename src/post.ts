@@ -1,4 +1,3 @@
-import { nanoid } from 'nanoid';
 import { Response, getFolder, hashPassword, parseFileToData, response } from './common';
 import { checkRecaptcha } from './recaptcha';
 import { Data, dataSchema, deleteDataSchema, newDataSchema } from './schema';
@@ -44,26 +43,26 @@ function createItem(e: GoogleAppsScript.Events.DoPost): Response {
   try {
     const baseData = newDataSchema.parse(JSON.parse(rawJson));
     const id = acquireNewId(folder);
-    const date = Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy-MM-ddTHH:mm:ss+09:00');
+    const date = Utilities.formatDate(new Date(), 'Asia/Tokyo', "yyyy-MM-dd'T'HH:mm:ss'+09:00'");
     const password = baseData.password ? hashPassword(baseData.password) : undefined;
     const data: Data = { ...baseData, id, createdAt: date, updatedAt: date, password };
     try {
       const json = JSON.stringify(data);
-      if (new Blob([json]).size > 1024 * 1024) {
+      if (Utilities.newBlob(json).getBytes().length > 1024 * 1024) {
         return response({ success: false, message: 'Data is too large' });
       }
-      folder.createFile(id, json, 'application/json');
+      folder.createFile(`${id}.json`, json, 'application/json');
       return response({ success: true, id });
     } catch (e) {
-      return response({ success: false, message: 'Failed to create file' });
+      return response({ success: false, message: `Failed to create file ${e}` });
     }
   } catch (e) {
-    return response({ success: false, message: 'Failed to parse data' });
+    return response({ success: false, message: `Failed to parse data ${e}` });
   }
 }
 
 function acquireNewId(folder: GoogleAppsScript.Drive.Folder): string {
-  const id = nanoid();
+  const id = Utilities.getUuid();
   const file = folder.getFilesByName(`${id}.json`);
   if (file.hasNext()) {
     return acquireNewId(folder);
@@ -97,20 +96,20 @@ function updateItem(e: GoogleAppsScript.Events.DoPost): Response {
     if (!checkPassword) {
       return response({ success: false, message: 'Password is incorrect' });
     }
-    const date = Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy-MM-ddTHH:mm:ss+09:00');
+    const date = Utilities.formatDate(new Date(), 'Asia/Tokyo', "yyyy-MM-dd'T'HH:mm:ss'+09:00'");
     const data: Data = { ...baseData, createdAt: oldData.createdAt, updatedAt: date, password: hashedNewPassword };
     try {
       const json = JSON.stringify(data);
-      if (new Blob([json]).size > 1024 * 1024) {
+      if (Utilities.newBlob(json).getBytes().length > 1024 * 1024) {
         return response({ success: false, message: 'Data is too large' });
       }
       oldFile.setContent(json);
       return response({ success: true, id });
     } catch (e) {
-      return response({ success: false, message: 'Failed to update file' });
+      return response({ success: false, message: `Failed to update file ${e}` });
     }
   } catch (e) {
-    return response({ success: false, message: 'Failed to parse data' });
+    return response({ success: false, message: `Failed to parse data ${e}` });
   }
 }
 
@@ -144,9 +143,9 @@ function deleteItem(e: GoogleAppsScript.Events.DoPost): Response {
       folder.removeFile(oldFile);
       return response({ success: true, id });
     } catch (e) {
-      return response({ success: false, message: 'Failed to delete file' });
+      return response({ success: false, message: `Failed to delete file ${e}` });
     }
   } catch (e) {
-    return response({ success: false, message: 'Failed to parse data' });
+    return response({ success: false, message: `Failed to parse data ${e}` });
   }
 }
