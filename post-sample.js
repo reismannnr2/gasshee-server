@@ -15,7 +15,7 @@ async function postMessage(url, record, mode) {
 }
 
 var url =
-  'https://script.google.com/macros/s/AKfycbxALMYQdoJA8etTXlVbI3W1wyfa4SEI1RnVY7p5CDf3pqIld6qMEYktUMGBIceLUsTfvw/exec';
+  'https://script.google.com/macros/s/AKfycbwwYNI01G59ZREp3QEntSmJB3jcZIaP6I5qorUZMLnr_CofBMC05KgX85Q_UIVZLOwmew/exec';
 
 var updateRecord = {
   id: 'b470c15c-4914-4916-a6a0-60706b02bf6c',
