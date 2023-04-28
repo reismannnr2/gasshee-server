@@ -1,4 +1,4 @@
-import { Response, getFolder, hashPassword, parseFileToData, response } from './common';
+import { Response, acquireNewId, getFolder, hashPassword, parseFileToData, response } from './common';
 import { checkRecaptcha } from './recaptcha';
 import { Data, deleteDataSchema, newDataSchema, updateDataSchema } from './schema';
 
@@ -59,15 +59,6 @@ function createItem(e: GoogleAppsScript.Events.DoPost): Response {
   } catch (e) {
     return response({ success: false, message: `Failed to parse data ${e}` });
   }
-}
-
-function acquireNewId(folder: GoogleAppsScript.Drive.Folder): string {
-  const id = Utilities.getUuid();
-  const file = folder.getFilesByName(`${id}.json`);
-  if (file.hasNext()) {
-    return acquireNewId(folder);
-  }
-  return id;
 }
 
 function updateItem(e: GoogleAppsScript.Events.DoPost): Response {
